@@ -1,0 +1,30 @@
+name: pdgen
+version: 0.0.1
+cabal-version: >= 1.2
+build-type: Simple
+license: AllRightsReserved
+license-file: ""
+copyright:
+maintainer:
+build-depends: base -any, mtl -any, graph-rewriting -any, graph-rewriting-layout -any, AC-Vector -any
+stability:
+homepage:
+package-url:
+bug-reports:
+synopsis:
+description: .
+category:
+author:
+tested-with:
+data-files:
+data-dir: ""
+extra-source-files:
+extra-tmp-files:
+ 
+Library
+  hs-source-dirs: src
+  build-depends: base -any, mtl -any, graph-rewriting -any, graph-rewriting-layout -any, AC-Vector -any
+  exposed-modules: Language.Pd.PdGen
+               Language.Pd.PdGen.Out
+  other-modules: 
+  ghc-options: -Wall
