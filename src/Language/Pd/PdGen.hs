@@ -18,7 +18,7 @@ instance Type PdSig
 class (Type o, Type i) => ConnectInto o i
 instance (Type t) => ConnectInto t t
 -- TODO XXX t NOT EQUAL to PdSig?
-instance (Type t, T.TypeEq t PdSig ~ T.NotEq) => ConnectInto t PdAny
+instance (Type t) => ConnectInto t PdAny
 instance ConnectInto PdNum PdSig
 
 data Type p => Inlet p = Inlet p C.Inlet deriving (Eq,Show)
@@ -31,25 +31,25 @@ type InletsOfR l = T.MapR Inlet l
 type OutletsOfR l = T.MapR Outlet l
 
 
-data (List li, List lo) => Object li lo = Object {
-	pref :: ObjectRef }
+data (T.List li, T.List lo) => Object li lo = Object {
+	pref :: C.ObjectRef,
 	pinlets :: li,
 	poutlets :: lo }
 
 infixl 5 @-
-p @- n = Inlet (take (pinlets p) n) (p C.@- n)
+p @- n = Inlet (T.take (pinlets p) n) (pref p C.@- T.intOfNum n)
 infixl 5 @+
-p @+ n = Outlet (take (poutlets p) n) (p C.@+ n)
+p @+ n = Outlet (T.take (poutlets p) n) (pref p C.@+ T.intOfNum n)
 
 infixl 3 @->
 (@->) :: (ConnectInto o i) => Outlet o -> Inlet i -> C.Pd ()
 (Outlet ot op) @-> (Inlet it ip) = op `C.into` ip
 
-class (Type t, List l) => ConnectAll t l where
+class (Type t, T.List l) => ConnectAll t l where
 	connectAll :: Outlet t -> l -> C.Pd ()
-instance (Type t) => ConnectAll t Nil where
+instance (Type t) => ConnectAll t T.Nil where
 	connectAll p i = return ()
-instance (Type t, ConnectInto t (TypeOfPdInlet h), ConnectAll t r, h ~ Inlet hty) => ConnectAll t (Cons h r) where
-	connectAll p (Cons h r) =
+instance (Type t, ConnectInto t (TypeOfInlet h), ConnectAll t r, h ~ Inlet hty) => ConnectAll t (T.Cons h r) where
+	connectAll p (T.Cons h r) =
 		p @-> h >> connectAll p r
 

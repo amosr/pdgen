@@ -1,12 +1,17 @@
 {-# OPTIONS -XMultiParamTypeClasses -XFlexibleInstances -XFlexibleContexts -XTypeFamilies -XRankNTypes -XUndecidableInstances #-}
 module Language.Pd.PdGen.Types where
 
+import Prelude hiding (take,Num)
+
 data Z = Z deriving (Eq,Show)
 data S n = S n deriving (Eq,Show)
 
-class Num n
-instance Num Z
-instance Num n => Num (S n)
+class Num n where
+	intOfNum :: n -> Int
+instance Num Z where
+	intOfNum _ = 0
+instance Num n => Num (S n) where
+	intOfNum (S n) = (intOfNum n) + 1
 
 n0 = Z
 n1 = S Z
@@ -51,9 +56,11 @@ instance (Map m t) => Map m (Cons h t)  where
 	type MapR m (Cons h t) = Cons (m h) (MapR m t)
 	tmap f (Cons h t) = Cons (f h) (tmap f t)
 
-data Eq
-data NotEq
+{-
+data TEq = TEq
+data TNotEq = TNotEq
 
 type family TypeEq a b
-type instance TypeEq a a = Eq
-type instance TypeEq a b = NotEq
+type instance TypeEq a a = TEq
+type instance TypeEq a b = TNotEq
+-}

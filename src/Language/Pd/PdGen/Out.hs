@@ -1,7 +1,7 @@
 {-# OPTIONS -XFlexibleInstances -XMultiParamTypeClasses #-}
 module Language.Pd.PdGen.Out where
 
-import Language.Pd.PdGen
+import Language.Pd.PdGen.Core
 
 import qualified GraphRewriting.Graph as G
 import qualified GraphRewriting.Graph.Write as G

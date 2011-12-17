@@ -25,7 +25,7 @@ Library
   hs-source-dirs: src
   build-depends: base -any, mtl -any, graph-rewriting -any, graph-rewriting-layout -any, AC-Vector -any
   exposed-modules: Language.Pd.PdGen
-               Language.Pd.PdGen.Out
+                   Language.Pd.PdGen.Out
   other-modules: Language.Pd.PdGen.Core
-		Language.Pd.PdGen.Types
+                 Language.Pd.PdGen.Types
   ghc-options: -Wall
