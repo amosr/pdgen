@@ -1,62 +1,55 @@
+{-# OPTIONS -XMultiParamTypeClasses -XFlexibleInstances -XFlexibleContexts -XTypeFamilies -XRankNTypes -XUndecidableInstances #-}
 module Language.Pd.PdGen where
 
-import Control.Monad.State
+import qualified Language.Pd.PdGen.Core as C
+import qualified Language.Pd.PdGen.Types as T
 
-data Object
-	= Object String [String]
-	| Message String
-	| FloatAtom -- todo lower, upper bounds, send/rcv names
-	| SymbolAtom
-	-- text? array?
-	deriving (Eq,Show)
-newtype ObjectRef = ObjectRef Int
-	deriving (Eq,Show)
-	
-type Port = (ObjectRef,Int)
-newtype Inlet = Inlet Port
-	deriving (Eq,Show)
-newtype Outlet = Outlet Port
-	deriving (Eq,Show)
+data PdNum = PdNum deriving (Eq,Show)
+data PdBang = PdBang deriving (Eq,Show)
+data PdAny = PdAny deriving (Eq,Show)
+data PdSig = PdSig deriving (Eq,Show)
 
-data Patch = Patch {
-	objects :: [Object],
-	connections :: [(Outlet,Inlet)] }
-	deriving (Eq,Show)
+class Type p
+instance Type PdNum
+instance Type PdBang
+instance Type PdAny
+instance Type PdSig
 
-empty :: Patch
-empty = Patch [] []
+class (Type o, Type i) => ConnectInto o i
+instance (Type t) => ConnectInto t t
+-- TODO XXX t NOT EQUAL to PdSig?
+instance (Type t, T.TypeEq t PdSig ~ T.NotEq) => ConnectInto t PdAny
+instance ConnectInto PdNum PdSig
 
-objectRefs :: Patch -> [ObjectRef]
-objectRefs p = map ObjectRef [0..length (objects p)]
+data Type p => Inlet p = Inlet p C.Inlet deriving (Eq,Show)
+data Type p => Outlet p = Outlet p C.Outlet deriving (Eq,Show)
 
-type Pd a = State Patch a
+type family TypeOfInlet p
+type instance TypeOfInlet (Inlet i) = i
 
-patch :: Pd a -> Patch
-patch p = snd$ runState p empty
+type InletsOfR l = T.MapR Inlet l
+type OutletsOfR l = T.MapR Outlet l
 
-insertObject :: Object -> Pd ObjectRef
-insertObject o = do
-	p@(Patch { objects = objs }) <- get
-	put (p{ objects = objs ++ [o] })
-	return$ ObjectRef (length objs)
 
-object :: String -> [String] -> Pd ObjectRef
-object name args = insertObject$ Object name args
+data (List li, List lo) => Object li lo = Object {
+	pref :: ObjectRef }
+	pinlets :: li,
+	poutlets :: lo }
 
-message :: String -> Pd ObjectRef
-message = insertObject . Message
--- etc...
+infixl 5 @-
+p @- n = Inlet (take (pinlets p) n) (p C.@- n)
+infixl 5 @+
+p @+ n = Outlet (take (poutlets p) n) (p C.@+ n)
 
-infixl 9 @+
-(@+) :: ObjectRef -> Int -> Outlet
-(@+) o num = Outlet (o,num)
+infixl 3 @->
+(@->) :: (ConnectInto o i) => Outlet o -> Inlet i -> C.Pd ()
+(Outlet ot op) @-> (Inlet it ip) = op `C.into` ip
 
-infixl 9 @-
-(@-) :: ObjectRef -> Int -> Inlet
-(@-) o num = Inlet (o,num)
+class (Type t, List l) => ConnectAll t l where
+	connectAll :: Outlet t -> l -> C.Pd ()
+instance (Type t) => ConnectAll t Nil where
+	connectAll p i = return ()
+instance (Type t, ConnectInto t (TypeOfPdInlet h), ConnectAll t r, h ~ Inlet hty) => ConnectAll t (Cons h r) where
+	connectAll p (Cons h r) =
+		p @-> h >> connectAll p r
 
-infixl 5 `into`
-into :: Outlet -> Inlet -> Pd ()
-into o i = do
-	p@(Patch { connections = conns }) <- get
-	put (p{ connections = conns ++ [(o,i)] })
