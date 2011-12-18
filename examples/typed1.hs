@@ -1,16 +1,18 @@
-import Language.Pd.PdGen.Core
+import Language.Pd.PdGen
+import qualified Language.Pd.PdGen.Lib as L
+import qualified Language.Pd.PdGen.Core as C
 import Language.Pd.PdGen.Out
 
-sustain :: Patch
-sustain = patch$ do
-	note <- object "inlet" ["note"]
-	vel <- object "inlet" ["vel"]
-	pedal <- object "inlet" ["pedal"]
+sustain :: C.Patch
+sustain = C.patch$ do
+	note <- L.inlet PdNum "note"
+	vel <- L.inlet PdNum "vel"
+	pedal <- L.inlet PdNum "pedal"
 
-	swap <- object "swap" []
+	swap <- L.swap
 
-	note@+0 `into` swap@-0
-	vel@+0 `into` swap@-1
+	note@+n0 @-> swap@-n0
+	vel@+n0 @-> swap@-n1
 
 	pack <- object "pack" ["0", "0"]
 	swap@+0 `into` pack@-0
@@ -49,3 +51,4 @@ sustain = patch$ do
 
 main = do
 	putStrLn (out sustain)
+

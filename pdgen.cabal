@@ -1,31 +1,31 @@
 name: pdgen
 version: 0.0.1
-cabal-version: >= 1.2
+cabal-version: >= 1.8
 build-type: Simple
-license: AllRightsReserved
-license-file: ""
-copyright:
-maintainer:
-build-depends: base -any, mtl -any, graph-rewriting -any, graph-rewriting-layout -any, AC-Vector -any
-stability:
-homepage:
-package-url:
-bug-reports:
-synopsis:
-description: .
-category:
-author:
-tested-with:
-data-files:
-data-dir: ""
-extra-source-files:
-extra-tmp-files:
+license: GPL
+homepage: https://github.com/amosr/pdgen
+category: Language
+author: Amos Robinson
+synopsis: bindings for generating pure data patches
  
 Library
   hs-source-dirs: src
-  build-depends: base -any, mtl -any, graph-rewriting -any, graph-rewriting-layout -any, AC-Vector -any
+  build-depends: base, mtl, graph-rewriting, graph-rewriting-layout, AC-Vector
   exposed-modules: Language.Pd.PdGen
+                   Language.Pd.PdGen.Core
+                   Language.Pd.PdGen.Lib
                    Language.Pd.PdGen.Out
-  other-modules: Language.Pd.PdGen.Core
-                 Language.Pd.PdGen.Types
-  ghc-options: -Wall
+  other-modules: Language.Pd.PdGen.Types
+--  extensions: TypeFamilies FlexibleInstances
+
+Test-Suite sus-pd
+  type: exitcode-stdio-1.0
+  hs-source-dirs: examples
+  build-depends: pdgen, base
+  main-is: sus-pd.hs
+
+Test-Suite typed1
+  type: exitcode-stdio-1.0
+  hs-source-dirs: examples
+  build-depends: pdgen, base
+  main-is: typed1.hs

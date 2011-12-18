@@ -1,7 +1,7 @@
 {-# OPTIONS -XMultiParamTypeClasses -XFlexibleInstances -XFlexibleContexts -XTypeFamilies -XRankNTypes -XUndecidableInstances #-}
 module Language.Pd.PdGen.Types where
 
-import Prelude hiding (take,Num)
+import Prelude hiding (take,Num,map)
 
 data Z = Z deriving (Eq,Show)
 data S n = S n deriving (Eq,Show)
@@ -31,6 +31,11 @@ type instance Add (S a) b = S (Add a b)
 data Nil = Nil deriving (Eq,Show)
 data Cons h t = Cons h t deriving (Eq,Show)
 
+type L1 a = Cons a Nil
+l1 a = Cons a Nil
+type L2 a b = Cons a (L1 b)
+l2 a b = Cons a (l1 b)
+
 class List n
 instance List Nil
 instance List (Cons h t)
@@ -45,16 +50,25 @@ instance (Num n, List t, Take t n) => Take (Cons h t) (S n) where
 	type TakeR (Cons h t) (S n) = TakeR t n
 	take (Cons h t) (S n) = take t n
 
+class (List a, List b) => App a b where
+	type AppR a b
+	app :: a -> b -> AppR a b
+instance (List b) => App Nil b where
+	type AppR Nil b = b
+	app _ b = b
+instance (App a b) => App (Cons h a) b where
+	type AppR (Cons h a) b = Cons h (AppR a b)
+	app (Cons h a) b = Cons h (app a b)
 
 class (List l) => Map m l where
 	type MapR m l
-	tmap :: (forall a. a -> m a) -> l -> MapR m l
+	map :: (forall a. a -> m a) -> l -> MapR m l
 instance  Map m Nil where
 	type MapR m Nil = Nil
-	tmap _ _ = Nil
+	map _ _ = Nil
 instance (Map m t) => Map m (Cons h t)  where
 	type MapR m (Cons h t) = Cons (m h) (MapR m t)
-	tmap f (Cons h t) = Cons (f h) (tmap f t)
+	map f (Cons h t) = Cons (f h) (map f t)
 
 {-
 data TEq = TEq

@@ -27,9 +27,6 @@ data Type p => Outlet p = Outlet p C.Outlet deriving (Eq,Show)
 type family TypeOfInlet p
 type instance TypeOfInlet (Inlet i) = i
 
-type InletsOfR l = T.MapR Inlet l
-type OutletsOfR l = T.MapR Outlet l
-
 
 data (T.List li, T.List lo) => Object li lo = Object {
 	pref :: C.ObjectRef,
@@ -53,3 +50,6 @@ instance (Type t, ConnectInto t (TypeOfInlet h), ConnectAll t r, h ~ Inlet hty) 
 	connectAll p (T.Cons h r) =
 		p @-> h >> connectAll p r
 
+wrap obj ins outs = do
+	ref <- C.insertObject obj
+	return$ Object ref ins outs
