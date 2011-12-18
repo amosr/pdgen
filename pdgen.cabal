@@ -14,9 +14,10 @@ Library
   exposed-modules: Language.Pd.PdGen
                    Language.Pd.PdGen.Core
                    Language.Pd.PdGen.Lib
+                   Language.Pd.PdGen.Lib.Trigger
                    Language.Pd.PdGen.Out
-  other-modules: Language.Pd.PdGen.Types
---  extensions: TypeFamilies FlexibleInstances
+                   Language.Pd.PdGen.Types
+  extensions: TypeFamilies FlexibleInstances FlexibleContexts OverlappingInstances
 
 Test-Suite sus-pd
   type: exitcode-stdio-1.0
@@ -29,3 +30,4 @@ Test-Suite typed1
   hs-source-dirs: examples
   build-depends: pdgen, base
   main-is: typed1.hs
+  extensions: TypeFamilies FlexibleInstances FlexibleContexts OverlappingInstances
