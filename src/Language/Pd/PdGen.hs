@@ -35,31 +35,39 @@ instance ListOfType T.Nil
 instance (Type h, ListOfType t) => ListOfType (T.Cons h t)
 
 data (ListOfType li, ListOfType lo) => Object li lo = Object {
-	pref :: C.ObjectRef,
-	pinlets :: li,
-	poutlets :: lo }
+	inlets :: T.MapR Inlet li,
+	outlets :: T.MapR Outlet lo }
 
 infixl 5 @-
-p @- n = Inlet (T.take (pinlets p) n) (pref p C.@- T.intOfNum n)
+p @- n = T.take (inlets p) n
 infixl 5 @+
-p @+ n = Outlet (T.take (poutlets p) n) (pref p C.@+ T.intOfNum n)
+p @+ n = T.take (outlets p) n
+
+type Pd a = C.Pd a
 
 infixl 3 @->
-(@->) :: (ConnectInto o i) => Outlet o -> Inlet i -> C.Pd ()
+(@->) :: (ConnectInto o i) => Outlet o -> Inlet i -> Pd ()
 (Outlet ot op) @-> (Inlet it ip) = op `C.into` ip
 
 infixl 3 `forceInto`
-forceInto :: (Type o,Type i) => Outlet o -> Inlet i -> C.Pd ()
+forceInto :: (Type o,Type i) => Outlet o -> Inlet i -> Pd ()
 forceInto (Outlet ot op) (Inlet it ip) = op `C.into` ip
 
-class (Type t, T.List l) => ConnectAll t l where
-	connectAll :: Outlet t -> l -> C.Pd ()
-instance (Type t) => ConnectAll t T.Nil where
-	connectAll p i = return ()
-instance (Type t, ConnectInto t (TypeOfInlet h), ConnectAll t r, h ~ Inlet hty) => ConnectAll t (T.Cons h r) where
-	connectAll p (T.Cons h r) =
-		p @-> h >> connectAll p r
+class (ListOfType ts) => InletsOf ts where
+	inletsOf :: T.Num idx => ts -> idx -> C.ObjectRef -> T.MapR Inlet ts
+instance InletsOf T.Nil where
+	inletsOf _ _ _ = T.Nil
+instance (Type h, InletsOf t) => InletsOf (T.Cons h t) where
+	inletsOf (T.Cons h t) n obj = T.Cons (Inlet h (obj C.@- T.intOfNum n)) (inletsOf t (T.S n) obj)
 
+class (ListOfType ts) => OutletsOf ts where
+	outletsOf :: T.Num idx => ts -> idx -> C.ObjectRef -> T.MapR Outlet ts
+instance OutletsOf T.Nil where
+	outletsOf _ _ _ = T.Nil
+instance (Type h, OutletsOf t) => OutletsOf (T.Cons h t) where
+	outletsOf (T.Cons h t) n obj = T.Cons (Outlet h (obj C.@+ T.intOfNum n)) (outletsOf t (T.S n) obj)
+
+wrap :: (InletsOf li, OutletsOf lo) => C.Object -> li -> lo -> Pd (Object li lo)
 wrap obj ins outs = do
 	ref <- C.insertObject obj
-	return$ Object ref ins outs
+	return$ Object (inletsOf ins T.Z ref) (outletsOf outs T.Z ref)
