@@ -56,3 +56,10 @@ trigger toobs = let (tys,strs) = mapTriggers toobs in
 unpack toobs =  let (tys,strs) = mapTriggers toobs in
 	wrap (C.Object "unpack" strs)
 		(T.l1 PdAny) tys
+
+unpack2F = unpack (T.l2 TFloat TFloat)
+
+packT toobs =  let (tys,strs) = mapTriggers toobs in
+	wrap (C.Object "pack" strs)
+		tys (T.l1 PdAny)
+

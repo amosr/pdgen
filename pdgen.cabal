@@ -32,3 +32,11 @@ Test-Suite typed1
   build-depends: pdgen, base
   main-is: typed1.hs
   extensions: TypeFamilies FlexibleInstances FlexibleContexts OverlappingInstances
+
+Test-Suite synth
+  type: exitcode-stdio-1.0
+  hs-source-dirs: examples
+  build-depends: pdgen, base
+  main-is: synth.hs
+  extensions: TypeFamilies FlexibleInstances FlexibleContexts OverlappingInstances
+  ghc-options: -fcontext-stack=50
