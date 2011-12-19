@@ -6,6 +6,9 @@ import qualified Language.Pd.PdGen.Core as C
 import qualified Language.Pd.PdGen.Connectors as Cn
 import qualified Language.Pd.PdGen.Types as T
 
+import qualified Language.Pd.PdGen.Lib.Trigger as LT
+
+
 message :: String -> Pd (Object (T.L1 PdAny) (T.L1 PdAny))
 message msg = wrap (C.Message msg) (T.l1 PdAny) (T.l1 PdAny)
 
@@ -52,6 +55,7 @@ route ps = wrap (C.Object "route" (listOfStringable ps))
 eq :: Float -> Pd (Object (T.L2 PdNum PdNum) (T.L1 PdNum))
 eq f = wrap (C.Object "==" [show f]) (T.l2 PdNum PdNum) (T.l1 PdNum)
 
+(+~) = wrap (C.Object "+~" []) (T.l2 PdSig PdSig) (T.l1 PdSig)
 
 -- todo extra param voice stealing
 poly :: Int -> Pd (Object (T.L1 PdAny) (T.L3 PdNum PdNum PdNum))
@@ -59,10 +63,39 @@ poly voices = wrap (C.Object "poly" [show voices])
 	(T.l1 PdAny) (T.l3 PdNum PdNum PdNum)
 
 {-
-polysynth :: (T.Num voices, T.Range0 voices) => voices -> PdNum -> PdNum -> Pd (PdSig,PdSig) -> Pd (PdSig, PdSig)
-polysynth voices innote invel = do
-	p <- poly (T.intOfNum voices)
-	pk <- pack (T.l3 PdNum PdNum PdNum)
-	r <- route (T.range0 voices)
-	p@-T.n0 
+polysynth :: (T.Num voices, T.Range0 voices, voxR ~ T.Range0R voices,
+		MapPdAny voxR, Stringable voxR, OutletsOf (MapPdAnyR voxR)) => voices ->
+	Pd (Object (T.L2 PdNum PdNum) (T.L2 PdSig PdSig)) ->
+	Pd (Object (T.L2 PdNum PdNum) (T.L2 PdSig PdSig))
 -}
+
+polysynth voices synth = do
+	pk_1 <- pack (T.l2 PdNum PdNum)
+	p <- poly (T.intOfNum voices)
+	pk_2 <- pack (T.l3 PdNum PdNum PdNum)
+	Cn.manyToMany (outlets pk_1) (inlets p)
+	Cn.manyToMany (outlets p) (inlets pk_2)
+	r <- route (T.range0 voices)
+	busL <- (+~)
+	busR <- (+~)
+	polySynthR (outlets r) synth (Object (T.l2 (busL@-T.n0) (busR@-T.n0)) (T.Nil))
+	return$ Object (T.l2 (pk_1@-T.n0) (pk_1@-T.n1)) (T.l2 (busL@+T.n0) (busR@+T.n0))
+
+class PolySynth l where
+	polySynthR ::
+		l ->
+		Pd (Object (T.L2 PdNum PdNum) (T.L2 PdSig PdSig)) ->
+		(Object (T.L2 PdSig PdSig) T.Nil) ->
+		Pd ()
+
+instance PolySynth T.Nil where
+	polySynthR _ _ _ = return () 
+instance (PolySynth l) => PolySynth (T.Cons PdAny l) where
+	polySynthR (T.Cons PdAny p) synth collector = do
+		unpk <- LT.unpack (T.l2 LT.TFloat LT.TFloat)
+		s <- synth
+		Cn.manyToMany (outlets unpk) (inlets s)
+		Cn.manyToMany (outlets s) (inlets collector)
+		
+		polySynthR p synth collector
+

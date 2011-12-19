@@ -27,9 +27,6 @@ instance ConnectInto PdAny PdAny
 data Type p => Inlet p = Inlet p C.Inlet deriving (Eq,Show)
 data Type p => Outlet p = Outlet p C.Outlet deriving (Eq,Show)
 
-type family TypeOfInlet p
-type instance TypeOfInlet (Inlet i) = i
-
 class ListOfType l
 instance ListOfType T.Nil
 instance (Type h, ListOfType t) => ListOfType (T.Cons h t)
@@ -42,6 +39,13 @@ infixl 5 @-
 p @- n = T.take (inlets p) n
 infixl 5 @+
 p @+ n = T.take (outlets p) n
+
+infixl 3 `oas`
+oas :: (Type t1, Type t2, ConnectInto t2 t1) => Outlet t1 -> t2 -> Outlet t2
+oas (Outlet _ r) t = Outlet t r
+infixl 3 `ias`
+ias :: (Type t1, Type t2, ConnectInto t2 t1) => Inlet t1 -> t2 -> Inlet t2
+ias (Inlet _ r) t = Inlet t r
 
 type Pd a = C.Pd a
 
