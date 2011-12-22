@@ -7,7 +7,7 @@ import qualified Language.Pd.PdGen.Types as T
 import qualified Language.Pd.PdGen.Core as C
 import qualified Language.Pd.PdGen.Out as O
 
-rhodes = C.patch$ do
+synth = C.patch$ do
 	notes <- notein
 	p <- polysynth T.n8 vox :: Pd (Object (T.L2 PdNum PdNum) (T.L2 PdSig PdSig))
 	out <- dacS2
@@ -15,36 +15,36 @@ rhodes = C.patch$ do
 	Cn.manyToMany (T.l2 (notes@+T.n0) (notes@+T.n1)) (inlets p)
 	Cn.manyToMany (outlets p) (inlets out)
 
-	
-
 
 vox :: Pd (Object (T.L2 PdNum PdNum) (T.L2 PdSig PdSig))
 vox = do
 	freq <- mtof
+	vel <- number
 
-	vel <- div1 1270
-	msg <- message "\\$1 10"
-	vel@+T.n0 @-> msg@-T.n0
-	line <- lineS
-	msg@+T.n0 @-> line@-T.n0
+
+	env <- div1 1270 `Cn.com1` message "\\$1 10" `Cn.com1` lineS
+	vel@+T.n0 @-> env@-T.n0
 
 	osc1 <- oscS
 	freq@+T.n0 @-> osc1@-T.n0
 
-	osc2ctl_mul <- mulS1 50
+	osc2ctl_mul <- mulS
+	env2 <- mul1 500 `Cn.com1` message "0 \\, \\$1 5000" `Cn.com1` lineS
+	env2@+T.n0 @-> osc2ctl_mul@-T.n1
+	vel@+T.n0 @-> env2@-T.n0
+
 	osc1@+T.n0 @-> osc2ctl_mul@-T.n0
 
 	osc2ctl_add <- addS
-	osc2ctl_mul@+T.n0 @-> osc2ctl_add@-T.n0
-	freq@+T.n0 @-> osc2ctl_add@-T.n1
+	Cn.binop (osc2ctl_mul,freq) osc2ctl_add 
 
 	osc2 <- oscS
 	osc2ctl_add@+T.n0 @-> osc2@-T.n0
 
 	mul <- mulS
-	Cn.manyToMany (T.l2 (osc2@+T.n0) (line@+T.n0)) (inlets mul)
+	Cn.binop (osc2, env) mul
 	osc1@+T.n0 @-> mul@-T.n0
 
 	return$ Object (T.l2 (freq@-T.n0) (vel@-T.n0)) (T.l2 (mul@+T.n0) (mul@+T.n0))
 
-main = putStrLn (O.out rhodes)
+main = putStrLn (O.out synth)

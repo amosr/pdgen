@@ -21,3 +21,20 @@ instance (ConnectInto oty ity, ManyToMany os is, o ~ Outlet oty, i ~ Inlet ity) 
 	manyToMany (T.Cons o os) (T.Cons i is) =
 		o @-> i >> manyToMany os is
 
+com1 :: (ConnectInto o i,
+	T.List (T.MapR Inlet in1), T.List (T.MapR Outlet out1),
+	T.List (T.MapR Inlet in2), T.List (T.MapR Outlet out2),
+	ListOfType in1, ListOfType out1,
+	ListOfType in2, ListOfType out2) =>
+	Pd (Object in1 (T.Cons o out1)) -> 
+	Pd (Object (T.Cons i in2) out2) ->
+	Pd (Object in1 out2)
+com1 f g = do
+	f' <- f
+	g' <- g
+	f'@+T.n0 @-> g'@-T.n0
+	return$ Object (inlets f') (outlets g')
+
+binop (p,q) op = do
+	p@+T.n0 @-> op@-T.n0
+	q@+T.n0 @-> op@-T.n1
