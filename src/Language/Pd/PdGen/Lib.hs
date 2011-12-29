@@ -17,10 +17,12 @@ number = wrap C.FloatAtom (T.l1 PdNum) (T.l1 PdNum)
 symbol = wrap C.SymbolAtom (T.l1 PdAny) (T.l1 PdAny)
 print msg = wrap (C.Object "print" [msg]) (T.l1 PdAny) (T.Nil)
 
+-- | control inlet. not for signal.
 inlet ty nm = wrap (C.Object "inlet" [nm]) (T.Nil) (T.l1 ty)
-inletS = inlet PdSig
+inletS nm = wrap (C.Object "inlet~" [nm]) (T.Nil) (T.l1 PdSig)
+-- | control outlet. not for signal.
 outlet ty nm = wrap (C.Object "outlet" [nm]) (T.l1 ty) (T.Nil)
-outletS = outlet PdSig
+outletS nm = wrap (C.Object "outlet~" [nm]) (T.l1 PdSig) (T.Nil)
 
 swap = wrap (C.Object "swap" []) (T.l2 PdNum PdNum) (T.l2 PdNum PdNum)
 

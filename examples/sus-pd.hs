@@ -1,7 +1,7 @@
 import Language.Pd.PdGen.Core
 import Language.Pd.PdGen.Out
 
-sustain :: Patch
+sustain :: PdState
 sustain = patch$ do
 	note <- object "inlet" ["note"]
 	vel <- object "inlet" ["vel"]
@@ -48,4 +48,4 @@ sustain = patch$ do
 	return ()
 
 main = do
-	putStrLn (out sustain)
+	print (generate "sustain" sustain)

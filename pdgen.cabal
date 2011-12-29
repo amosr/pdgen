@@ -10,13 +10,14 @@ synopsis: bindings for generating pure data patches
  
 Library
   hs-source-dirs: src
-  build-depends: base, mtl, graph-rewriting, graph-rewriting-layout, AC-Vector
+  build-depends: base, directory, mtl, graph-rewriting, graph-rewriting-layout, AC-Vector
   exposed-modules: Language.Pd.PdGen
                    Language.Pd.PdGen.Connectors
                    Language.Pd.PdGen.Core
                    Language.Pd.PdGen.Lib
                    Language.Pd.PdGen.Lib.Trigger
                    Language.Pd.PdGen.Out
+                   Language.Pd.PdGen.Out.Layout
                    Language.Pd.PdGen.Types
   extensions: TypeFamilies FlexibleInstances FlexibleContexts OverlappingInstances MultiParamTypeClasses UndecidableInstances
 
@@ -38,5 +39,13 @@ Test-Suite synth
   hs-source-dirs: examples
   build-depends: pdgen, base
   main-is: synth.hs
+  extensions: TypeFamilies FlexibleInstances FlexibleContexts OverlappingInstances
+  ghc-options: -fcontext-stack=50
+
+Test-Suite synth-sub
+  type: exitcode-stdio-1.0
+  hs-source-dirs: examples
+  build-depends: pdgen, base
+  main-is: synth-sub.hs
   extensions: TypeFamilies FlexibleInstances FlexibleContexts OverlappingInstances
   ghc-options: -fcontext-stack=50

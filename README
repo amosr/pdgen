@@ -1,10 +1,9 @@
 pdgen - create puredata patches from haskell.
 attempts type-safety.
 
-things like `poly' have always annoyed me because you need to duplicate the same vox 8 times and connect it etc. attempt to fix that.
+things like 'poly' have always annoyed me because you need to duplicate the same vox 8 times and connect it etc. attempt to fix that.
 
 todo:
-can connect PdSig into PdAny - should not be able to
 Language.Pd.PdGen.Connectors needs some thought
 want to be able to describe subpatches which are exactly the same each use & be output as separate files, perhaps cleaner
 better output, and better graph layout

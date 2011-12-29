@@ -47,4 +47,4 @@ vox = do
 
 	return$ Object (T.l2 (freq@-T.n0) (vel@-T.n0)) (T.l2 (mul@+T.n0) (mul@+T.n0))
 
-main = putStrLn (O.out synth)
+main = O.out "synth" synth

@@ -5,7 +5,7 @@ import qualified Language.Pd.PdGen.Lib.Trigger as LT
 import qualified Language.Pd.PdGen.Types as T
 import Language.Pd.PdGen.Out
 
-sustain :: C.Patch
+sustain :: C.PdState
 sustain = C.patch$ do
 	note <- L.inlet PdNum "note"
 	vel <- L.inlet PdNum "vel"
@@ -52,5 +52,5 @@ sustain = C.patch$ do
 	return ()
 
 main = do
-	putStrLn (out sustain)
+	print (generate "sustain" sustain)
 
