@@ -64,13 +64,13 @@ num = show
 
 binop1 nm f = wrap (C.Object nm [num f]) (T.l2 PdNum PdNum) (T.l1 PdNum)
 
-add1 = binop1 "+"
-sub1 = binop1 "-"
-mul1 = binop1 "*"
-div1 = binop1 "/"
-pow1 = binop1 "pow"
-max1 = binop1 "max"
-min1 = binop1 "min"
+add1 f = binop1 "+" f
+sub1 f = binop1 "-" f
+mul1 f = binop1 "*" f
+div1 f = binop1 "/" f
+pow1 f = binop1 "pow" f
+max1 f = binop1 "max" f
+min1 f = binop1 "min" f
 
 unopF nm = wrap (C.Object nm []) (T.l1 PdNum) (T.l1 PdNum)
 mtof = unopF "mtof"
@@ -86,17 +86,17 @@ binopS nm = wrap (C.Object nm []) (T.l2 PdSig PdSig) (T.l1 PdSig)
 binopS1 nm f = wrap (C.Object nm [num f]) (T.l2 PdSig PdNum) (T.l1 PdSig)
 
 addS = binopS "+~"
-addS1 = binopS1 "+~"
+addS1 f = binopS1 "+~" f
 subS = binopS "-~"
-subS1 = binopS1 "-~"
+subS1 f = binopS1 "-~" f
 mulS = binopS "*~"
-mulS1 = binopS1 "*~"
+mulS1 f = binopS1 "*~" f
 divS = binopS "/~"
-divS1 = binopS1 "/~"
+divS1 f = binopS1 "/~" f
 maxS = binopS "max~"
-maxS1 = binopS1 "max~"
+maxS1 f = binopS1 "max~" f
 minS = binopS "min~"
-minS1 = binopS1 "min~"
+minS1 f = binopS1 "min~" f
 
 -- I'm not really sure about the second inlet...
 lineS = wrap (C.Object "line~" []) (T.l2 PdAny PdNum) (T.l1 PdSig)
@@ -109,7 +109,7 @@ dacS2 = wrap (C.Object "dac~" []) (T.l2 PdSig PdSig) T.Nil
 
 -- todo extra param voice stealing
 poly :: Int -> Pd (Object (T.L1 PdAny) (T.L3 PdNum PdNum PdNum))
-poly voices = wrap (C.Object "poly" [show voices])
+poly voices = wrap (C.Object "poly" [show voices, "1"])
 	(T.l1 PdAny) (T.l3 PdNum PdNum PdNum)
 
 {-

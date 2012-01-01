@@ -103,6 +103,8 @@ wrap obj ins outs = do
 	ref <- C.insertObject obj
 	return$ Object (inletsOf ins T.Z ref) (outletsOf outs T.Z ref)
 
+wrapObj obj args ins outs = wrap (C.Object obj args) ins outs
+
 patch = C.patch
 
 -- | create subpatch
