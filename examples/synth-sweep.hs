@@ -7,41 +7,37 @@ import qualified Language.Pd.PdGen.Types as T
 
 import qualified Language.Pd.PdGen.Out as O
 
-class T.Num n => MkSweeper n where
-    mkSweeper :: n -> Int -> Int
-	      -> Pd (Object (T.L2 PdNum PdNum) (T.L2 PdSig PdSig))
-	      -> Pd (Object (T.L2 PdNum PdNum) (T.L2 PdSig PdSig))
-instance MkSweeper T.Z where
-    mkSweeper _ _ _ syn = syn
+mkSweeper :: Int -> Int -> Int
+	  -> Pd (Object (T.L2 PdNum PdNum) (T.L2 PdSig PdSig))
+	  -> Pd (Object (T.L2 PdNum PdNum) (T.L2 PdSig PdSig))
+mkSweeper 0 _ _ syn = syn
+mkSweeper n freqd delay syn = do
+    freq <- number
+    vel <- number
 
-instance MkSweeper n => MkSweeper (T.S n) where
-    mkSweeper (T.S n) freqd delay syn = do
-	freq <- number
-	vel <- number
+    s <- syn
+    Cn.binop (freq,vel) s
 
-	s <- syn
-	Cn.binop (freq,vel) s
+    sumL <- addS
+    s@+T.n0 @-> sumL@-T.n0
+    sumR <- addS
+    s@+T.n1 @-> sumR@-T.n0
 
-	sumL <- addS
-	s@+T.n0 @-> sumL@-T.n0
-	sumR <- addS
-	s@+T.n1 @-> sumR@-T.n0
+    p <- pipe (T.l2 TFloat TFloat) delay
+    freq@+T.n0 @-> p@-T.n0
+    vel@+T.n0 @-> p@-T.n1
 
-	p <- pipe (T.l2 TFloat TFloat) delay
-	freq@+T.n0 @-> p@-T.n0
-	vel@+T.n0 @-> p@-T.n1
+    freq' <- add1 freqd
+    p@+T.n0 @-> freq'@-T.n0
 
-	freq' <- add1 freqd
-	p@+T.n0 @-> freq'@-T.n0
+    subsweep <- mkSweeper (n-1) freqd delay syn
+    freq'@+T.n0 @-> subsweep@-T.n0
+    p@+T.n1 @-> subsweep@-T.n1
 
-	subsweep <- mkSweeper n freqd delay syn
-	freq'@+T.n0 @-> subsweep@-T.n0
-	p@+T.n1 @-> subsweep@-T.n1
+    subsweep@+T.n0 @-> sumL@-T.n0
+    subsweep@+T.n1 @-> sumR@-T.n0
 
-	subsweep@+T.n0 @-> sumL@-T.n0
-	subsweep@+T.n1 @-> sumR@-T.n0
-
-	return $ Object (T.l2 (freq@-T.n0) (vel@-T.n0)) (T.l2 (sumL@+T.n0) (sumR@+T.n0))
+    return $ Object (T.l2 (freq@-T.n0) (vel@-T.n0)) (T.l2 (sumL@+T.n0) (sumR@+T.n0))
 
 syn = subpatch (T.l2 PdNum PdNum) (T.l2 PdSig PdSig) "syn"$ do
 	freq <- inlet PdNum "freq" `Cn.com1` mtof `Cn.com1` number 
@@ -91,7 +87,7 @@ sweeper phases freqd delay = subpatch (T.l2 PdNum PdNum) (T.l2 PdSig PdSig) "swe
 	vel <- inlet PdNum "vel" `Cn.com1` div1 127 `Cn.com1` number
 
 	vox <- syn
-	let s2 = mkSweeper T.n8 (-1) 15 (vox [])
+	let s2 = mkSweeper 8 (-1) 15 (vox [])
 	swp <- mkSweeper phases freqd delay s2
 
 	Cn.binop (freq,vel) swp
@@ -105,7 +101,7 @@ sweeper phases freqd delay = subpatch (T.l2 PdNum PdNum) (T.l2 PdSig PdSig) "swe
 	
 
 sall = patch$ do
-	sbassR <- sweeper T.n8 2 150 --500
+	sbassR <- sweeper 8 2 150 --500
 
 	notes <- notein
 
