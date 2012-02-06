@@ -15,6 +15,7 @@ Library
                    Language.Pd.PdGen.Connectors
                    Language.Pd.PdGen.Core
                    Language.Pd.PdGen.Lib
+                   Language.Pd.PdGen.Lib.Extra
                    Language.Pd.PdGen.Lib.Trigger
                    Language.Pd.PdGen.Out
                    Language.Pd.PdGen.Out.Layout
@@ -47,5 +48,13 @@ Test-Suite synth-sub
   hs-source-dirs: examples
   build-depends: pdgen, base
   main-is: synth-sub.hs
+  extensions: TypeFamilies FlexibleInstances FlexibleContexts OverlappingInstances
+  ghc-options: -fcontext-stack=50
+
+Test-Suite synth-sweep
+  type: exitcode-stdio-1.0
+  hs-source-dirs: examples
+  build-depends: pdgen, base
+  main-is: synth-sweep.hs
   extensions: TypeFamilies FlexibleInstances FlexibleContexts OverlappingInstances
   ghc-options: -fcontext-stack=50

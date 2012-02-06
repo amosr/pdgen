@@ -20,10 +20,14 @@ generate name (PdState{psPatch = patch, psSubs = subs}) =
 	where
 	subfiles = map (\s -> (spId s, subname s)) subs
 	subname s = name ++ "/" ++ spName s ++ "-" ++ show (spId s)
+
+	subfiles_nodir = map (\s -> (spId s, subname_nodir s)) subs
+	subname_nodir s = spName s ++ "-" ++ show (spId s)
+
 	first = (name, outPatch name patch subfiles)
 	
 	subpatch s = let sn = subname s in
-		(sn, outPatch sn (spPatch s) subfiles)
+		(sn, outPatch sn (spPatch s) subfiles_nodir)
 
 write :: [(String,String)] -> IO ()
 write = mapM_ write1

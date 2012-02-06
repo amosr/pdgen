@@ -107,6 +107,20 @@ oscS1 f = wrap (C.Object "osc~" [num f]) (T.l2 PdNum PdNum) (T.l1 PdSig)
 adcS2 = wrap (C.Object "adc~" []) T.Nil (T.l2 PdSig PdSig)
 dacS2 = wrap (C.Object "dac~" []) (T.l2 PdSig PdSig) T.Nil
 
+pipeF del = wrapObj "pipe" [num del] (T.l2 PdAny PdNum) (T.l1 PdNum)
+delwriteS nm maxtime = wrapObj "delwrite~" [nm, num maxtime] (T.l1 PdSig) (T.Nil)
+vdS nm = wrapObj "vd~" [nm] (T.l1 PdSig) (T.l1 PdSig)
+phasorS = wrapObj "phasor~" [] (T.l2 PdSig PdNum) (T.l1 PdSig)
+cosS = wrapObj "cos~" [] (T.l1 PdSig) (T.l1 PdSig)
+sinS = wrapObj "sin~" [] (T.l1 PdSig) (T.l1 PdSig)
+
+gt1 f = wrapObj ">" [num f] (T.l2 PdNum PdNum) (T.l1 PdNum)
+
+svfS ty = wrapObj "svf~" [ty] (T.l4 PdSig PdSig PdSig PdSig) (T.l1 PdSig)
+
+moses split = wrapObj "moses" [num split] (T.l2 PdNum PdNum) (T.l2 PdNum PdNum)
+
+
 -- todo extra param voice stealing
 poly :: Int -> Pd (Object (T.L1 PdAny) (T.L3 PdNum PdNum PdNum))
 poly voices = wrap (C.Object "poly" [show voices, "1"])

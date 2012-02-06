@@ -63,3 +63,9 @@ packT toobs =  let (tys,strs) = mapTriggers toobs in
 	wrap (C.Object "pack" strs)
 		tys (T.l1 PdAny)
 
+
+-- pipe has one inlet for each input, plus one to specify delay
+pipe toobs delay =  let (tys,strs) = mapTriggers toobs in
+	wrap (C.Object "pipe" (strs++[show delay]))
+		(T.app tys (T.l1 PdNum)) tys
+
