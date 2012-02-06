@@ -41,67 +41,48 @@ mkSweeper n freqd delay syn = do
 
 syn = subpatch (T.l2 PdNum PdNum) (T.l2 PdSig PdSig) "syn"$ do
 	freq <- inlet PdNum "freq" `Cn.com1` mtof `Cn.com1` number 
-	vel <- inlet PdNum "vel" `Cn.com1` div1 127 `Cn.com1` number
+	vel <- inlet PdNum "vel" `Cn.com1` div1 256 `Cn.com1` number
 
 	oscvel <- return vel `Cn.com1` adsr 10.0 100.0 0.5 100.0
-	filtervel <- return vel `Cn.com1` gt1 0 `Cn.com1` mul1 2 `Cn.com1` adsr 0 250 0.3 500
 
 	osc <- return freq `Cn.com1` oscS
 	oscenv <- mulS
 	Cn.binop (osc,vel) oscenv
 
-	delhz <- return freq `Cn.com1` message "\\$1 10" `Cn.com1` lineS
-	delms <- return freq `Cn.com1` ftoms `Cn.com1` number `Cn.com1` message "\\$1 10" `Cn.com1` lineS
-	delosc <- return delhz `Cn.com1` divS1 5 `Cn.com1` oscS `Cn.com1` divS1 2
-	delmul <- mulS
-	Cn.binop (delms,delosc) delmul
-	deladd <- addS
-	Cn.binop (delms,delmul) deladd
-	delread <- return deladd `Cn.com1` vdS "\\$0-del"
-
-	filtmul <- mulS
-	Cn.binop (filtervel,delhz) filtmul
-	filt <- svfS "low"
-	oscenv@+T.n0 @-> filt@-T.n0
-	filtmul@+T.n0 @-> filt@-T.n1
-
-	o <- oscS1 17 `Cn.com1` addS1 6 `Cn.com1` divS1 7
-	o@+T.n0 @-> filt@-T.n2
-	o@+T.n0 @-> filt@-T.n3
-
-
-
-	sum <- addS
-	Cn.binop (filt,delread) sum 
-
-	delwrite <- return sum `Cn.com1` mulS1 0.8 `Cn.com1` delwriteS "\\$0-del" 1000
-
-	out <- return sum `Cn.com1` sinS
+	out <- return oscenv `Cn.com1` sinS
 	outL <- return out `Cn.com1` outletS "left"
 	outR <- return out `Cn.com1` outletS "right"
 
 	return ()
 
-sweeper phases freqd delay = subpatch (T.l2 PdNum PdNum) (T.l2 PdSig PdSig) "sweeper"$ do
+sweeper = subpatch (T.l2 PdNum PdNum) (T.l2 PdSig PdSig) "sweeper"$ do
 	freq <- inlet PdNum "freq" `Cn.com1` mtof `Cn.com1` number 
 	vel <- inlet PdNum "vel" `Cn.com1` div1 127 `Cn.com1` number
 
 	vox <- syn
-	let s2 = mkSweeper 8 (-1) 15 (vox [])
-	swp <- mkSweeper phases freqd delay s2
+	let s2 = mkSweeper 16 (-2) 95 (vox [])
+	swp <- mkSweeper 16 3 50 s2
 
 	Cn.binop (freq,vel) swp
 
+	del <- delwriteS "\\$0-dL" 1000
+	swp@+T.n0 @-> del@-T.n0
+
+	vd <- return freq `Cn.com1` ftoms `Cn.com1` vdS "\\$0-dL"
+	feedback <- return vd `Cn.com1` mulS1 0.90 `Cn.com1` return del
+
 	outL <- outletS "left"
 	swp@+T.n0 @-> outL@-T.n0
+	vd@+T.n0 @-> outL@-T.n0
 	outR <- outletS "right"
 	swp@+T.n1 @-> outR@-T.n0
+	vd@+T.n0 @-> outR@-T.n0
 
 	return ()
 	
 
 sall = patch$ do
-	sbassR <- sweeper 8 2 150 --500
+	sbassR <- sweeper
 
 	notes <- notein
 
