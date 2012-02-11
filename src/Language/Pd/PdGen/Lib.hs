@@ -59,7 +59,7 @@ route ps = wrap (C.Object "route" (listOfStringable ps))
 eq :: Float -> Pd (Object (T.L2 PdNum PdNum) (T.L1 PdNum))
 eq f = wrap (C.Object "==" [show f]) (T.l2 PdNum PdNum) (T.l1 PdNum)
 
-num :: Num n => n -> String
+num :: (Num n, Show n) => n -> String
 num = show
 
 binop1 nm f = wrap (C.Object nm [num f]) (T.l2 PdNum PdNum) (T.l1 PdNum)

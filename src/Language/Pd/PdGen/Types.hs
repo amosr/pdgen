@@ -18,7 +18,10 @@ instance Num Z where
 instance Num n => Num (S n) where
 	intOfNum (S n) = (intOfNum n) + 1
 
-instance Num n => Show n where
+instance Show Z where
+	show = show . intOfNum
+
+instance Num n => Show (S n) where
 	show = show . intOfNum
 
 -- | Shorthand for some common numbers
